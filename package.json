@@ -1,14 +1,26 @@
 {
-  "name": "moobox",
-  "private": true,
-  "version": "0.0.1",
+  "name": "@cookee/moobox",
+  "version": "0.0.2",
   "type": "module",
+  "files": [
+    "lib"
+  ],
+  "main": "lib/index.js",
+  "module": "./lib/index.js",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "require": "./lib/index.umd.cjs"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "build:lib": "vue-tsc --noEmit && vite build --mode=library",
     "preview": "vite preview",
     "build:wp": "webpack --config=webpack.config.js",
-    "start:wp": "webpack serve --open"
+    "start:wp": "webpack serve --open",
+    "publish": "npm run build:lib && npm publish --access public"
   },
   "dependencies": {
     "@tweenjs/tween.js": "^20.0.3",
@@ -30,6 +42,7 @@
     "ts-loader": "^9.4.2",
     "typescript": "^4.9.5",
     "vite": "^4.1.0",
+    "vite-plugin-compression": "^0.5.1",
     "vue": "^3.2.45",
     "vue-loader": "^17.0.1",
     "vue-router": "^4.0.13",
