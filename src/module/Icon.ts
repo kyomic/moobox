@@ -1,5 +1,6 @@
 import { Emitter } from "@/event";
 import { createNode } from "@/utils";
+import { Query as $ } from "@/helper/query";
 
 export type IconStyle = {
   color?: number | string,
