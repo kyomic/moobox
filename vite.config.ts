@@ -3,7 +3,6 @@ import vue from '@vitejs/plugin-vue'
 import path, { resolve } from 'path'
 // npm i fast-glob
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
-import viteCompression from "vite-plugin-compression";
 
 
 // https://vitejs.dev/config/
@@ -45,9 +44,11 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
   console.log('mode', mode)
   console.log('command', command)
   if (mode == 'library') {
-    console.log("-###")
     return {
       ...defaultConfig,
+      plugins: [
+        ...defaultConfig.plugins,
+      ],
       build: {
         ...defaultConfig.build || {},
         outDir: 'lib',
@@ -57,7 +58,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
           name: '@cookee/moobox',
           // the proper extensions will be added
           fileName: 'index',
-        },
+        }
       }
 
     }

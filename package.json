@@ -1,6 +1,6 @@
 {
   "name": "@cookee/moobox",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "type": "module",
   "files": [
     "lib"
@@ -11,6 +11,9 @@
     ".": {
       "import": "./lib/index.js",
       "require": "./lib/index.umd.cjs"
+    },
+    "./lib/style.css":{
+      "import": "./lib/style.css"
     }
   },
   "scripts": {
@@ -20,9 +23,10 @@
     "preview": "vite preview",
     "build:wp": "webpack --config=webpack.config.js",
     "start:wp": "webpack serve --open",
-    "publish": "npm run build:lib && npm publish --access public"
+    "publish:lib": "npm run build:lib && npm publish --access public"
   },
   "dependencies": {
+    "@cookee/moobox": "^0.0.3",
     "@tweenjs/tween.js": "^20.0.3",
     "@volar/vue-language-core": "1.6.3",
     "fast-glob": "^3.2.12",

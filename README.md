@@ -34,8 +34,10 @@ npm -i @cookee/moobox
 ```
 #### 3.插入调用代码
 ```javascript
-import { autoInstall } from '@cookee/moobox'
+import { autoInstall } from "@cookee/moobox";
+import '@cookee/moobox/lib/style.css' // 引入样式
 autoInstall()
+
 ```
 
 ### Vue 项目引入流程
