@@ -4,9 +4,9 @@ moobox 是一个简单的图片列表预览模块，支持全屏展示图片，�
 
 
 ##### 演示地址
-[Javascript index.html](https://kyomic.github.io/mooobox/doc/example/index.html "Editor.md")
+[Javascript index.html](https://kyomic.github.io/moobox/ "Editor.md")
 
-![Image text](https://raw.github.com/kyomic/repositpry/main/moobox/doc/example/images/main.jpg)
+[![Image text](https://kyomic.github.io/moobox/images/main.png)](https://kyomic.github.io/moobox/images/main.png)
 
 ## 使用说明
 > npmjs 帐号暂不可用，待推送至npm
