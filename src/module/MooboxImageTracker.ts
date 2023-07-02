@@ -152,6 +152,7 @@ export default class MooboxImageTracker {
       evt.stopPropagation()
       evt.stopImmediatePropagation()
       evt.preventDefault()
+      this._moobox.autoplay(false)
       if (this.transformAnimateRunning) {
         return
       }
@@ -201,13 +202,16 @@ export default class MooboxImageTracker {
         // const y = evt.clientY
         let offsetX = x - bound.left
         let offsetY = y - bound.top
+        if (delta > 0) {
+          this._moobox.swapTop(true)
+        }
         //this.zoomTo(newScale, new Point(offsetX, offsetY), { duration: 30 })
         this.zoomTo(newScale, new Point(offsetX, offsetY), { duration: 30 })
       }
       this._moobox.dispatch(
         new MoonEvent(MoonEvent.ZOOM_WHEEL, { origin: evt, delta })
       )
-      this._zoomDebounce()
+      //this._zoomDebounce()
     })
   }
   // TODO
@@ -297,6 +301,7 @@ export default class MooboxImageTracker {
     const currentScale = this.transform.scale
     let newScale = initScale
     console.log('toggleZOm...', currentScale, initScale)
+    this._moobox.autoplay(false)
     if (currentScale <= initScale && inContent) {
       console.log('zoomIn')
       this.setCursor('zoomout')
@@ -378,11 +383,11 @@ export default class MooboxImageTracker {
     this.transform.oldX = this.transform.x
     this.transform.oldY = this.transform.y
     const viewPortWidth = this.viewPort.width;
-    console.log("VW====", viewPortWidth)
     $.css(this.container, 'left', viewPortWidth * this.index)
     console.log("动画结束")
     if (!this.canPan()) {
       this.setCursor('zoomin')
+      this._moobox.swapTop(false)
     }
     this.updateDebug()
   }

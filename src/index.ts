@@ -56,25 +56,26 @@ export class Moobox extends Emitter {
   static ImageNavigation = AbstractNavigation
   static Toolbar = MooboxToolbar
 
-  container: HTMLElement
+  container: HTMLElement | null = null
+  _initialzed: boolean = false
   /**
    * 顶部工具
    */
-  toolbar: HTMLElement | null
-  imageviewer: HTMLElement | null;
+  toolbar: HTMLElement | null = null
+  imageviewer: HTMLElement | null = null
   /**
    * 中间内容区
    */
-  viewport: HTMLElement | null
-  nav: HTMLElement | null
+  viewport: HTMLElement | null = null
+  nav: HTMLElement | null = null
   /**
    * 缩略图
    */
-  thumbs: HTMLElement | null
+  thumbs: HTMLElement | null = null
   /**
    * viewport中的 图片展示模块
    */
-  track: HTMLElement | null
+  track: HTMLElement | null = null
 
   /**
    * Moobox所在的根节点
@@ -103,7 +104,8 @@ export class Moobox extends Emitter {
   /** 
    * track dom event
    */
-  evtOnTrackEvent
+  evtOnTrack
+  evtOnResize
 
   /**
    * 动画初始值
@@ -133,6 +135,13 @@ export class Moobox extends Emitter {
     fitHeight: 0,
   }
 
+  progress: HTMLElement | null = null;
+  /**
+   * 自动播放控制
+   */
+  _autoplayTimerId: any
+  _autoplay: boolean = false;
+  _autoplayDuration: number = 0
 
 
   constructor(target: HTMLElement, options: MooboxOption) {
@@ -145,33 +154,27 @@ export class Moobox extends Emitter {
     this.content.scale = this._option.initScale
     this.root = target
 
+    if (typeof this._option.data == 'object') {
+      this._data = this._option.data
+    } else {
+      const callback = this._option?.data;
+      if (typeof callback == 'function') {
+        this._data = callback() as MooboxData
+      } else {
+        // try{
+        //   this._data = await (callback as Promise<unknown>)() as MooboxData
+        // }catch(err){
 
-    // container -> viewport -> track -... tracks
-    this.container = createNode('container', this.root)
+        // }
+      }
 
-    /** 主体结构 */
-    this.toolbar = createNode('toolbar', this.container)
-    this.imageviewer = createNode('imageviewer', this.container)
-    this.viewport = createNode('viewport', this.imageviewer)
-    this.nav = createNode('nav', this.imageviewer)
-    this.nav.innerHTML = `
-    <div class="icon icon-left">
-      <svg class="svg-icon" style="width:35px; height:35px;">
-        <use xlink:href="#icon-left" fill="#CCCCCC"></use>
-      </svg>
-    </div>
-    <div class="icon icon-right">
-        <svg class="svg-icon" style="width: 35px; height:35px;">
-        <use xlink:href="#icon-right" fill="#CCCCCC"></use>
-      </svg>
-    </div>
-    `
-    this.thumbs = createNode('thumbs', this.container)
-    /** 创建 viewport中相关组件 */
-    this.track = createNode('track', this.viewport)
+    }
 
-    this.initialize()
+
+
+
   }
+
 
   static generateDefaultConfig() {
     return {
@@ -189,27 +192,63 @@ export class Moobox extends Emitter {
     }
   }
 
-
-  async initialize() {
-    if (typeof this._option.data == 'object') {
-      this._data = this._option.data
-    } else {
-      const callback = this._option?.data;
-      if (typeof callback == 'function') {
-        this._data = callback() as MooboxData
-      } else {
-        // try{
-        //   this._data = await (callback as Promise<unknown>)() as MooboxData
-        // }catch(err){
-
-        // }
-      }
-
+  open(opt) {
+    opt = opt || { index: 0 }
+    let index = opt.index;
+    if (opt.url) {
+      index = this._data.images.findIndex(item => {
+        return item === opt.url;
+      })
     }
+    if (!index || index < 0) index = 0;
+    this._selectedIndex = index;
+    this.initialize()
+  }
+  close() {
+    this.destroy()
+
+  }
+
+  create() {
+    // container -> viewport -> track -... tracks
+    this.container = createNode('container', this.root)
+
+    /** 主体结构 */
+    this.toolbar = createNode('toolbar', this.container)
+    this.progress = createNode('progress', this.container)
+    this.imageviewer = createNode('imageviewer', this.container)
+    this.viewport = createNode('viewport', this.imageviewer)
+    this.nav = createNode('nav', this.imageviewer)
+    this.nav.innerHTML = `
+     <div class="icon icon-left">
+       <svg class="svg-icon" style="width:35px; height:35px;">
+         <use xlink:href="#icon-left" fill="#CCCCCC"></use>
+       </svg>
+     </div>
+     <div class="icon icon-right">
+         <svg class="svg-icon" style="width: 35px; height:35px;">
+         <use xlink:href="#icon-right" fill="#CCCCCC"></use>
+       </svg>
+     </div>
+     `
+    this.thumbs = createNode('thumbs', this.container)
+    /** 创建 viewport中相关组件 */
+    this.track = createNode('track', this.viewport)
+  }
+  async initialize() {
+    if (this._initialzed) {
+      return
+    }
+    this.create()
+
+    /**
+     * 配置默认缓存为10张图片
+     */
     this.buffer = new ImageLoader(this._data.images, { maxCacheLength: 10 })
     this.evtOnWheel = this.onWheelEvent.bind(this)
     this.evtOnMoon = this.onMoonBoxEvent.bind(this)
-    this.evtOnTrackEvent = this.onTrackEvent.bind(this)
+    this.evtOnTrack = this.onTrackEvent.bind(this)
+    this.evtOnResize = this.onResizeEvent.bind(this)
     if (this.nav) {
       $(this.nav).delegate('.icon-left', 'click', () => {
         this.prev();
@@ -219,16 +258,15 @@ export class Moobox extends Emitter {
       })
     }
     this.resizeObject = new ResizeWatcher()
-    this.resizeObject.addEventListener('resize', (e) => {
-      this.dispatch(new MoonEvent(MoonEvent.RESIZE, e))
-    })
+    this.resizeObject.addEventListener('resize', this.evtOnResize)
     this.resizeObject.observe(this.root)
 
     this.attachEvent()
     if (this.buffer) {
       (this.buffer as ImageLoader).load(0)
     }
-    this.setSelectedIndex(this._option.selectedIndex ?? 0)
+
+    this.setSelectedIndex(this._selectedIndex)
 
     // 初始化插件模块
     if (this.track) {
@@ -257,6 +295,7 @@ export class Moobox extends Emitter {
     }
     this.setCursor('grab')
     this.update()
+
   }
 
   option(name: string, initValue?: any) {
@@ -268,10 +307,10 @@ export class Moobox extends Emitter {
   }
 
   private attachEvent() {
-    ;[MoonEvent.ZOOM_WHEEL, MoonEvent.RESIZE].map(type => {
+    ;[MoonEvent.ZOOM_WHEEL, MoonEvent.RESIZE, MoonEvent.PAN_END].map(type => {
       this.addEventListener(type, this.onMoonBoxEvent)
     })
-    this.track?.addEventListener('mousedown', this.evtOnTrackEvent)
+    this.track?.addEventListener('mousedown', this.evtOnTrack)
   }
 
   onWheelEvent(evt: any) {
@@ -279,8 +318,9 @@ export class Moobox extends Emitter {
   }
 
   onMoonBoxEvent(evt: Events) {
-    //console.log('evt', evt)
-    switch (evt.type) {
+    const type = typeof evt == 'string' ? evt : evt.type
+    //console.log('evt===', evt)
+    switch (type) {
       case MoonEvent.ZOOM_WHEEL:
         //this.currentTracker.zoomIn
         break
@@ -309,6 +349,11 @@ export class Moobox extends Emitter {
 
         }
         break;
+      case MoonEvent.PAN_END:
+        if (this._autoplay) {
+          this.autoplay(true)
+        }
+        break;
     }
   }
   onTrackEvent(evt: MouseEvent) {
@@ -326,8 +371,8 @@ export class Moobox extends Emitter {
         }
         this.transform.dragstart = new Point(evt.clientX, evt.clientY)
         this.transform.dragstartTime = new Date().valueOf()
-        document.addEventListener('mouseup', this.evtOnTrackEvent)
-        document.addEventListener('mousemove', this.evtOnTrackEvent)
+        document.addEventListener('mouseup', this.evtOnTrack)
+        document.addEventListener('mousemove', this.evtOnTrack)
         break
       case 'mousemove':
         this.setCursor('grabbing')
@@ -359,12 +404,15 @@ export class Moobox extends Emitter {
           this.panTo(new Point(currentPos, 0))
         }
 
-        document.removeEventListener('mouseup', this.evtOnTrackEvent)
-        document.removeEventListener('mousemove', this.evtOnTrackEvent)
+        document.removeEventListener('mouseup', this.evtOnTrack)
+        document.removeEventListener('mousemove', this.evtOnTrack)
         break
     }
   }
 
+  onResizeEvent(e) {
+    this.dispatch(new MoonEvent(MoonEvent.RESIZE, e))
+  }
   /**
    * 当前的Moobox 的应用宽度
    * @returns
@@ -535,6 +583,7 @@ export class Moobox extends Emitter {
         this.update()
         this.updateTracks()
 
+        this.dispatch(MoonEvent.PAN_END)
         let index = this._option.navigation?.currentIndex ?? 0;
         if (index < minIndex || index > maxIndex) {
           // 自动切换头和尾索引
@@ -546,6 +595,8 @@ export class Moobox extends Emitter {
           this.transform.x = - index * viewPortWidth
           this.update()
         }
+
+
       },
     }
 
@@ -591,8 +642,9 @@ export class Moobox extends Emitter {
         'transform': `translate3d(${x}px, 0px, 0px) scale(1)`
       })
     }
-
-
+    if (!this._autoplay) {
+      this.progress && (this.progress && (this.progress.style.cssText = `width:0%;transition:none;`))
+    }
 
   }
   updateTracks() {
@@ -636,11 +688,65 @@ export class Moobox extends Emitter {
     ['grab', 'grabbing'].map(item => {
       this.track && $.removeClass(this.track, `cursor-${item}`)
     })
-
     this.track && $.addClass(this.track, `cursor-${type}`)
-
+  }
+  swapTop(bol: boolean = true) {
+    if (this.imageviewer) {
+      if (bol) {
+        $.css(this.imageviewer, 'z-index', 100)
+      } else {
+        $.css(this.imageviewer, 'z-index', '')
+      }
+    }
   }
 
+  autoplay(bol: boolean = true) {
+    this._autoplay = bol
+    clearInterval(this._autoplayTimerId);
+    if (bol) {
+      const duration = 2 * 1000;
+      const step = 100;
+      this._autoplayTimerId = setInterval(() => {
+        if (this._autoplayDuration > duration) {
+          this._autoplayDuration = 0;
+          clearInterval(this._autoplayTimerId)
+          this.next();
+          // this._autoplayDuration = 0
+          // this.progress && (this.progress.style.cssText = `width:0%;transition:none;`)
+          return
+        }
+
+        this._autoplayDuration += step;
+        const scale = this._autoplayDuration / duration * 100
+        if (this.progress) {
+          this.progress.style.cssText = `width:${scale}%`
+        }
+
+      }, step)
+    }
+
+    if (this._autoplay) {
+      this.dispatch(new MoonEvent(MoonEvent.PLAY, {}))
+    } else {
+
+      this.dispatch(new MoonEvent(MoonEvent.PAUSE, {}))
+    }
+    this.update()
+
+  }
+  get isAutoPlay() {
+    return this._autoplay
+  }
+  toggleList() {
+    if (this.thumbs) {
+      $.toggleVisible(this.thumbs);
+    }
+    this.update()
+    // 这块不能放到update
+    if (this.currentTracker) {
+      this.currentTracker.reset()
+    }
+  }
   /**
    * 图片数据个数
    */
@@ -676,6 +782,16 @@ export class Moobox extends Emitter {
   }
   get nextTracker() {
     return this.genernateTrack(this._selectedIndex + 1)
+  }
+  destroy() {
+    if (this.resizeObject) {
+      this.resizeObject.removeEventListener('resize', this.evtOnResize)
+      this.resizeObject.unobserver(this.root);
+      this.resizeObject = null;
+    }
+
+    this.root.parentElement?.removeChild(this.root)
+    this.autoplay(false)
   }
 }
 Moobox.Toolbar = MooboxToolbar

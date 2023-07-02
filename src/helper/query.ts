@@ -169,7 +169,8 @@ Query.css = (
     console.warn(`***${dom} 不支持读取/写入样式 ***`)
     return
   }
-  const style = dom.style
+  let style = dom.style;
+
   if (typeof name == 'object') {
     for (let k in name) {
       Query.css(dom, k, name[k])
@@ -185,6 +186,8 @@ Query.css = (
       //console.log('k====', name, val)
       style[name] = val
     } else {
+      // getter 通过 getComputedStyle访问
+      style = getComputedStyle(dom);
       if (typeof name == 'string') {
         return style[name]
       }
@@ -221,6 +224,33 @@ Query.removeClass = (dom: HTMLElement, name: string) => {
     })
   cls = cls.replace(/\s{2,}/gi, ' ')
   dom.className = cls
+}
+Query.show = (dom: HTMLElement) => {
+  if ((dom as any).__hide_val) {
+    Query.css(dom, 'display', (dom as any).__hide_val)
+  } else {
+    Query.css(dom, 'display', 'block')
+  }
+}
+/**
+ * 暂只支持display:none进行隐藏
+ * @param dom 
+ */
+Query.hide = (dom: HTMLElement) => {
+  const style = Query.css(dom, 'display');
+  if (style != 'none') {
+    (dom as any).__hide_val = style;
+  }
+  Query.css(dom, 'display', 'none')
+
+}
+Query.toggleVisible = (dom: HTMLElement) => {
+  const style = Query.css(dom, 'display');
+  if (style == 'none') {
+    Query.show(dom)
+  } else {
+    Query.hide(dom)
+  }
 }
   ; (window as any).$ = Query
 export { Query }

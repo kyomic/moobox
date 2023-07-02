@@ -1,4 +1,4 @@
-import { Emitter } from '@/event'
+import { Emitter, MoonEvent } from '@/event'
 import { createNode, debounce, throttle } from '@/utils'
 import { AbstractNavigation } from './AbstractNavigation'
 import { Query as $ } from '@/helper/query'
@@ -148,7 +148,7 @@ export class ImageNavigation extends AbstractNavigation {
       })
     }
 
-    this.render()
+    this.render(0, false)
   }
   onWheel(delta) {
     let index = this.highlightIndex

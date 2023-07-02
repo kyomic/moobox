@@ -151,6 +151,9 @@ export class ImageLoader extends Emitter {
   private loadTask(task: ImageTask) {
     console.log(`加载任务:${task.url}`)
     const img: HTMLImageElement = document.createElement('img')
+    img.addEventListener('error', (err) => {
+      console.error(err)
+    })
     img.addEventListener('load', () => { })
     img.setAttribute('src', task.url)
   }

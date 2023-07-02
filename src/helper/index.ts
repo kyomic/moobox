@@ -1,6 +1,6 @@
 import { Moobox } from '..'
 
-export const MOOBOX_DOM_TAG = '[data-fancybox]'
+export const MOOBOX_DOM_TAG = '[data-moobox]'
 
 /**
  * 将字符转成驼峰式
@@ -18,21 +18,23 @@ export const camelCase = (str: string) => {
 export const autoInstall = () => {
   console.log('auto install')
   const context = globalThis
-  const install = (root: HTMLElement) => {
-    const eles = root.querySelectorAll(MOOBOX_DOM_TAG)
+  const eles = document.querySelectorAll(MOOBOX_DOM_TAG)
+  for (let item of eles) {
+    item.addEventListener('click', e => {
+      e.stopImmediatePropagation()
+      e.stopPropagation()
+      e.preventDefault()
+      const url = item.getAttribute('href') || ''
+      lanuch(document.body, url)
+    })
+  }
+  const lanuch = (root: HTMLElement, current: string) => {
     const images: string[] = []
     const thumbs: string[] = []
+    const eles = document.querySelectorAll(MOOBOX_DOM_TAG)
     for (let item of eles) {
-      item.addEventListener('click', e => {
-        e.stopImmediatePropagation()
-        e.stopPropagation()
-        e.preventDefault()
-      })
-      const thumb = item.querySelector('img')?.getAttribute('src')
-      if (thumb) {
-        thumbs.push(thumb)
-        images.push(item.getAttribute('href') || '')
-      }
+      images.push(item.getAttribute('href') || '')
+      thumbs.push(item.querySelector('img')?.getAttribute('src') || '')
     }
     const container = document.createElement('div')
     container.setAttribute('id', 'moobox-' + Math.floor(Math.random() * 1000))
@@ -51,16 +53,9 @@ export const autoInstall = () => {
         maxCount: -1,
       }),
     })
+    moobox.open({
+      url: current
+    })
   }
-  if (context && context.document) {
-    if (context.document.body) {
-      install(context.document.body)
-    } else {
-      context.document.addEventListener('DOMContentLoaded', () => {
-        install(context.document.body)
-      })
-    }
-  } else {
-    throw new Error('*** Moobox不支持当前环境 ***')
-  }
+
 }

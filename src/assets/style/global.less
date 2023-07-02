@@ -1,5 +1,6 @@
 :root {
   --moobox-background-color: rgba(0, 0, 0, 0.8);
+  --moobox-color-primary: #00cc00;
 }
 
 .moobox {
@@ -23,6 +24,8 @@
   .toolbar {
     height: 60px;
     background-color: rgba(0, 0, 0, 0.9);
+    position: relative;
+    z-index: 10;
 
     .viewport {
       display: flex;
@@ -49,7 +52,24 @@
       justify-content: center;
       flex-direction: row;
       align-items: center;
+      cursor: pointer;
+
+      &:hover {
+        svg use {
+          fill: var(--moobox-color-primary)
+        }
+      }
     }
+  }
+
+  .progress {
+    width: 0%;
+    height: 3px;
+    background-color: var(--moobox-color-primary);
+    position: absolute;
+    top: 0;
+    transition: width 0.1s linear;
+    z-index: 40;
   }
 
   .imageviewer {
@@ -57,6 +77,7 @@
     flex: 1 1 auto;
     min-height: 0;
     height: 100%;
+    //z-index: 30;
 
     .nav {
       .icon {
@@ -110,7 +131,7 @@
     background-color: transparent;
     flex: 1 0 auto;
     position: relative;
-    z-index: 30;
+    z-index: 10;
 
     .viewport {
       display: flex;
@@ -140,7 +161,7 @@
       }
 
       .img::after {
-        border: 5px solid #00cc00;
+        border: 5px solid var(--moobox-color-primary);
         content: '';
         position: absolute;
         left: 0;
@@ -292,7 +313,7 @@
 
 .fancybox__slide .fancybox__spinner {
   cursor: pointer;
-  z-index: 1053
+  z-index: 100
 }
 
 .spinner svg {
