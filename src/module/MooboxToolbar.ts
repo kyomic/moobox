@@ -1,11 +1,11 @@
 import { IToolbar, ToolBarItem } from '.'
 import { Moobox } from '..'
 import { Emitter, MoonEvent } from '../event'
+import Keyboard from '../utils/Keyboard'
 import { createNode } from '../utils'
 import Icon from './Icon'
 import { Query as $ } from '../helper/query'
 import fullapi from '../helper/fullscreen'
-
 export default class MooboxToolbar extends Emitter implements IToolbar {
   public viewport: HTMLElement | null = null
   public moobox: Moobox | null = null;
@@ -62,6 +62,13 @@ export default class MooboxToolbar extends Emitter implements IToolbar {
     close?.addEventListener('click', () => {
       this.moobox?.close()
     })
+
+    Keyboard.addEventListener('keyup', 'ESC', () => {
+      this.moobox?.close()
+    })
+
+    //Keyboard.removeEventListener('keydown', 'CTRL+SHIFT+1')
+
 
     //this.onCreated()
     this.update()

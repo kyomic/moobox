@@ -789,8 +789,8 @@ export class Moobox extends Emitter {
       this.resizeObject.unobserver(this.root);
       this.resizeObject = null;
     }
-
-    this.root.parentElement?.removeChild(this.root)
+    console.log('root===', this.root)
+    this.root.parentNode?.removeChild(this.root)
     this.autoplay(false)
   }
 }

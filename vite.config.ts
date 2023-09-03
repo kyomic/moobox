@@ -3,7 +3,8 @@ import vue from '@vitejs/plugin-vue'
 import path, { resolve } from 'path'
 // npm i fast-glob
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
-
+let dirname = __dirname
+console.log('_dir', dirname)
 
 // https://vitejs.dev/config/
 
@@ -39,7 +40,7 @@ const defaultConfig = {
 }
 // see:http://www.5ityx.com/cate104/134659.html
 
-export default defineConfig(({ command, mode, ssrBuild }) => {
+const config = defineConfig(({ command, mode, ssrBuild }) => {
   const env = loadEnv(mode, process.cwd(), '')
   console.log('mode', mode)
   console.log('command', command)
@@ -63,9 +64,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
 
     }
   }
-  return {
 
-  }
   if (command === "serve") {
     return {
       ...defaultConfig
@@ -74,4 +73,5 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
     return defaultConfig
   }
 })
+export default config
 
